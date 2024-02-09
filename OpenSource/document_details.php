@@ -68,6 +68,19 @@
             padding: 5px 5px;
             font-size: 15px;
         }
+            /* Add this style for the black and white submit button */
+    .btn-black-white {
+        background-color: #000;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-black-white:hover {
+        background-color: #000;
+        color: #fff;
+        border: none;
+    }
+
     </style>
 </head>
 
@@ -156,18 +169,57 @@
                 }
                 // View button
                 echo '<a href="' . $file . '" target="_blank" class="btn btn-primary mt-3 btn-smaller btn-black-white">Download File</a>';
-                
+             
+            // Display ratings
+            echo '<h3 class="mt-4">Ratings:</h3>';
+            echo '<div class="mb-3">';
+            echo '<label for="sortOrder" class="form-label">Sort by:</label>';
+            echo '<div class="btn-group" role="group" aria-label="Sort Ratings">';
+            echo '<a href="?fileID=' . $fileID . '&sort=asc" class="btn btn-secondary ' . ((isset($_GET['sort']) && $_GET['sort'] == 'asc') ? 'active' : '') . '">Least Ratings</a>';
+            echo '<a href="?fileID=' . $fileID . '&sort=desc" class="btn btn-secondary ' . ((isset($_GET['sort']) && $_GET['sort'] == 'desc') ? 'active' : '') . '">Most Ratings</a>';
+            
+            echo '</div>';
+            echo '</div>';
+        // Use the sort order parameter based on the user's choice
+        $sortOrder = (isset($_GET['sort']) && $_GET['sort'] == 'asc') ? 'ASC' : 'DESC';
+        displayRatings($mysqli, $fileID, $sortOrder);
+
+        // Rating form (only visible to authenticated users who are not the owner)
+        if (isset($_SESSION['userID']) && !$isOwner) {
+            echo '<h3 class="mt-4">Rate this document:</h3>';
+            echo '<form method="post" action="submit_rating.php" class="mb-4">';
+            echo '<input type="hidden" name="fileID" value="' . $fileID . '">';
+
+            // Dropdown for rating
+            echo '<div class="mb-3">';
+            echo '<label for="rating" class="form-label">Rating:</label>';
+            echo '<select name="rating" class="form-select">';
+            for ($i = 1; $i <= 5; $i++) {
+                echo '<option value="' . $i . '">' . $i . ' star' . ($i > 1 ? 's' : '') . '</option>';
+            }
+            echo '</select>';
+            echo '</div>';
+
+            // Message input
+            echo '<div class="mb-3">';
+            echo '<label for="message" class="form-label">Message:</label>';
+            echo '<textarea name="message" class="form-control" rows="3"></textarea>';
+            echo '</div>';
+
+            echo '<button type="submit" name="submitRating" class="btn btn-primary btn-black-white">Submit Rating</button>';
+
+            echo '</form>';
+        }
+            
                 // Edit button
                 if ($isOwner) {
                     echo '<a href="edit_file.php?fileID=' . $fileID . '" class="btn btn-secondary btn-black-white mt-3 btn-smaller">Edit File</a>';
 
-                   
-
                     // Update visibility form
                     echo '<form method="post" action="update_visibility.php" class="mt-3">';
                     echo '<input type="hidden" name="fileID" value="' . $fileID . '">';
-
-                  // Dropdown for updating visibility
+                    
+                    // Dropdown for updating visibility
                     echo '<label for="updateVisibility" class="mt-3">Update Visibility:</label>';
                     echo '<select name="updateVisibility" class="form-control">';
                     echo '<option value="1" ' . ($visibility == 1 ? 'selected' : '') . '>Public</option>';
@@ -183,7 +235,6 @@
                     echo '</form>'; // Make sure to close the form here
                 }
 
-              
                 echo '</div>';
             } else {
                 echo '<p class="alert alert-danger">Document not found.</p>';
